@@ -448,8 +448,12 @@ button {
   font-size: clamp(18px, 2.4vw, 26px);
   text-transform: uppercase;
   margin: 8px 0 4px;
-  word-break: break-word;
   color: var(--white);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.15;
 }
 
 .podium-score {
@@ -457,6 +461,36 @@ button {
   color: var(--green);
   font-size: clamp(22px, 3vw, 32px);
   font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .podium {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .podium-step {
+    width: 100%;
+    height: auto !important;
+    padding: 16px 18px;
+  }
+
+  .podium-step.gold {
+    order: 1;
+  }
+
+  .podium-step.silver {
+    order: 2;
+  }
+
+  .podium-step.bronze {
+    order: 3;
+  }
+
+  .podium-name {
+    -webkit-line-clamp: 1;
+  }
 }
 
 .lb-list {

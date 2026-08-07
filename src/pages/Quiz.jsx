@@ -3,7 +3,7 @@ import { questions } from "../data/questions.js";
 import { supabase } from "../lib/supabaseClient.js";
 
 const DURATION = 50; // segundos. Mude aqui se quiser testar com menos tempo.
-const RADIUS = 40;
+const RADIUS = 54;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 function shuffle(arr) {
@@ -43,8 +43,6 @@ export default function Quiz({ playerName, playerPhone, onExit }) {
     return () => clearInterval(id);
   }, [phase]);
 
-  // Salva a pontuação automaticamente assim que o tempo acaba. Só tenta uma
-  // vez: é um quiz de tentativa única por pessoa, sem repescagem.
   useEffect(() => {
     if (phase !== "finished" || savedRef.current) return;
     savedRef.current = true;
@@ -67,8 +65,7 @@ export default function Quiz({ playerName, playerPhone, onExit }) {
     if (lockRef.current || phase !== "playing") return;
     lockRef.current = true;
     setSelected(i);
-    const isCorrect = i === current.correta;
-    if (isCorrect) setScore((s) => s + 1);
+    if (i === current.correta) setScore((s) => s + 1);
     setAnswered((a) => a + 1);
 
     setTimeout(() => {
@@ -107,22 +104,19 @@ export default function Quiz({ playerName, playerPhone, onExit }) {
 
   return (
     <div className="screen">
-      <div className="quiz-header">
-        <div className="score-pill">{score} pts</div>
-        <div className={accentClass}>
-          <svg viewBox="0 0 100 100">
-            <circle className="track" cx="50" cy="50" r={RADIUS} />
-            <circle
-              className="progress"
-              cx="50"
-              cy="50"
-              r={RADIUS}
-              strokeDasharray={CIRCUMFERENCE}
-              strokeDashoffset={dashOffset}
-            />
-          </svg>
-          <div className="value">{secondsLeft}</div>
-        </div>
+      <div className={accentClass}>
+        <svg viewBox="0 0 128 128">
+          <circle className="track" cx="64" cy="64" r={RADIUS} />
+          <circle
+            className="progress"
+            cx="64"
+            cy="64"
+            r={RADIUS}
+            strokeDasharray={CIRCUMFERENCE}
+            strokeDashoffset={dashOffset}
+          />
+        </svg>
+        <div className="value">{secondsLeft}</div>
       </div>
 
       <div className="question-wrap">
@@ -130,11 +124,7 @@ export default function Quiz({ playerName, playerPhone, onExit }) {
         <h2 className="question-text">{current.pergunta}</h2>
         <div className="options-grid">
           {current.opcoes.map((op, i) => {
-            let cls = "option-btn";
-            if (selected !== null) {
-              if (i === current.correta) cls += " correct";
-              else if (i === selected) cls += " wrong";
-            }
+            const cls = selected === i ? "option-btn selected" : "option-btn";
             return (
               <button
                 key={i}

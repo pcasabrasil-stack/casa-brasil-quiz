@@ -78,6 +78,7 @@ export default function Quiz({ playerName, playerPhone, onExit }) {
   const accentClass = secondsLeft <= 10 ? "timer-ring low" : "timer-ring";
 
   if (phase === "finished") {
+    const wrong = answered - score;
     return (
       <div className="screen">
         <span className="eyebrow">Tempo esgotado</span>
@@ -85,10 +86,22 @@ export default function Quiz({ playerName, playerPhone, onExit }) {
           {playerName}
         </p>
         <div className="result-number">{score}</div>
-        <p className="result-label">
-          acertos em {answered} pergunta{answered === 1 ? "" : "s"} respondida
-          {answered === 1 ? "" : "s"}
-        </p>
+        <p className="result-label">acertos</p>
+
+        <div className="result-stats">
+          <div className="stat-chip">
+            <strong>{answered}</strong>
+            respondidas
+          </div>
+          <div className="stat-chip correct">
+            <strong>{score}</strong>
+            certas
+          </div>
+          <div className="stat-chip wrong">
+            <strong>{wrong}</strong>
+            erradas
+          </div>
+        </div>
 
         <div className="status-msg" style={{ color: saveStatus === "saved" ? "var(--green)" : undefined }}>
           {saveStatus === "saving" && "Salvando pontuação..."}

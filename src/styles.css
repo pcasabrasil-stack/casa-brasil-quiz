@@ -214,7 +214,7 @@ button {
   left: 24px;
   right: 24px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
 }
 
@@ -299,14 +299,10 @@ button {
 
 .options-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 16px;
-}
-
-@media (max-width: 560px) {
-  .options-grid {
-    grid-template-columns: 1fr;
-  }
+  max-width: 560px;
+  margin: 0 auto;
 }
 
 .option-btn {
@@ -325,14 +321,9 @@ button {
   transform: scale(0.98);
 }
 
-.option-btn.correct {
-  background: rgba(47, 158, 86, 0.22);
-  border-color: var(--green);
-}
-
-.option-btn.wrong {
-  background: rgba(255, 92, 92, 0.18);
-  border-color: var(--danger);
+.option-btn.selected {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--white);
 }
 
 .option-btn:disabled {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import logo from "../assets/logo-white.png";
 import ribbon from "../assets/ribbon.png";
+import { formatPhone } from "../lib/formatPhone.js";
 
 export default function Home({ onStart, onViewRanking }) {
   const [name, setName] = useState("");
@@ -24,7 +25,7 @@ export default function Home({ onStart, onViewRanking }) {
       <input
         className="name-input"
         style={{ marginTop: 28 }}
-        placeholder="Seu nome"
+        placeholder="Nome"
         value={name}
         maxLength={40}
         onChange={(e) => setName(e.target.value)}
@@ -35,9 +36,10 @@ export default function Home({ onStart, onViewRanking }) {
         style={{ marginTop: 12 }}
         placeholder="Telefone"
         type="tel"
+        inputMode="numeric"
         value={phone}
-        maxLength={20}
-        onChange={(e) => setPhone(e.target.value)}
+        maxLength={16}
+        onChange={(e) => setPhone(formatPhone(e.target.value))}
         onKeyDown={(e) => e.key === "Enter" && handleStart()}
       />
 
@@ -51,12 +53,8 @@ export default function Home({ onStart, onViewRanking }) {
           tempo total
         </div>
         <div className="rule-chip">
-          <strong>+1</strong>
+          <strong>1 ponto</strong>
           por acerto
-        </div>
-        <div className="rule-chip">
-          <strong>1x</strong>
-          por pessoa
         </div>
       </div>
 

@@ -2,19 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import logo from "../assets/logo-white.png";
 
-// Dados de mentira só pra demonstrar como o ranking fica preenchido.
-// Assim que a primeira pessoa de verdade jogar no evento, isso some
-// sozinho e entra o ranking real (veja o fallback lá embaixo).
-const MOCK_SCORES = [
-  { nome: "Marcela", acertos: 14, perguntas_respondidas: 15, created_at: "1" },
-  { nome: "Thiago", acertos: 13, perguntas_respondidas: 14, created_at: "2" },
-  { nome: "Camila", acertos: 12, perguntas_respondidas: 13, created_at: "3" },
-  { nome: "Rafael", acertos: 11, perguntas_respondidas: 12, created_at: "4" },
-  { nome: "Bianca", acertos: 10, perguntas_respondidas: 11, created_at: "5" },
-  { nome: "Diego", acertos: 9, perguntas_respondidas: 10, created_at: "6" },
-  { nome: "Larissa", acertos: 8, perguntas_respondidas: 9, created_at: "7" },
-];
-
 async function fetchScores() {
   const { data, error } = await supabase
     .from("scores")
@@ -28,10 +15,6 @@ async function fetchScores() {
     return [];
   }
 
-  // Se a mesma pessoa jogou mais de uma vez (identificada pelo telefone),
-  // mantém só a melhor tentativa dela no ranking. Como a busca já vem
-  // ordenada da melhor pra pior, a primeira ocorrência de cada telefone
-  // é sempre a pontuação mais alta dessa pessoa.
   const seen = new Set();
   const best = [];
   for (const row of data) {
@@ -44,23 +27,19 @@ async function fetchScores() {
 }
 
 export default function Leaderboard({ onBack }) {
-  const [scores, setScores] = useState(MOCK_SCORES);
+  const [scores, setScores] = useState([]);
 
   useEffect(() => {
-    fetchScores().then((data) => {
-      if (data.length > 0) setScores(data);
-    });
+    fetchScores().then(setScores);
 
     const channel = supabase
       .channel("scores-realtime")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "scores" }, () => {
-        fetchScores().then((data) => data.length > 0 && setScores(data));
+        fetchScores().then(setScores);
       })
       .subscribe();
 
-    const poll = setInterval(() => {
-      fetchScores().then((data) => data.length > 0 && setScores(data));
-    }, 8000);
+    const poll = setInterval(() => fetchScores().then(setScores), 8000);
 
     return () => {
       supabase.removeChannel(channel);
@@ -78,40 +57,46 @@ export default function Leaderboard({ onBack }) {
       <h1 className="lb-title">Ranking do Quiz</h1>
       <p className="lb-sub">Mais acertos em 50 segundos</p>
 
-      <div className="podium">
-        {second && (
-          <div className="podium-step silver">
-            <div className="podium-rank">2º lugar</div>
-            <div className="podium-name">{second.nome}</div>
-            <div className="podium-score">{second.acertos}</div>
+      {scores.length === 0 ? (
+        <div className="lb-empty">Ainda ninguém jogou. Bora ser o primeiro!</div>
+      ) : (
+        <>
+          <div className="podium">
+            {second && (
+              <div className="podium-step silver">
+                <div className="podium-rank">2º lugar</div>
+                <div className="podium-name">{second.nome}</div>
+                <div className="podium-score">{second.acertos}</div>
+              </div>
+            )}
+            {first && (
+              <div className="podium-step gold">
+                <div className="podium-rank">1º lugar</div>
+                <div className="podium-name">{first.nome}</div>
+                <div className="podium-score">{first.acertos}</div>
+              </div>
+            )}
+            {third && (
+              <div className="podium-step bronze">
+                <div className="podium-rank">3º lugar</div>
+                <div className="podium-name">{third.nome}</div>
+                <div className="podium-score">{third.acertos}</div>
+              </div>
+            )}
           </div>
-        )}
-        {first && (
-          <div className="podium-step gold">
-            <div className="podium-rank">1º lugar</div>
-            <div className="podium-name">{first.nome}</div>
-            <div className="podium-score">{first.acertos}</div>
-          </div>
-        )}
-        {third && (
-          <div className="podium-step bronze">
-            <div className="podium-rank">3º lugar</div>
-            <div className="podium-name">{third.nome}</div>
-            <div className="podium-score">{third.acertos}</div>
-          </div>
-        )}
-      </div>
 
-      {rest.length > 0 && (
-        <div className="lb-list">
-          {rest.map((s, i) => (
-            <div className="lb-row" key={`${s.nome}-${s.created_at}`}>
-              <div className="rank">{i + 4}</div>
-              <div className="name">{s.nome}</div>
-              <div className="score">{s.acertos} pts</div>
+          {rest.length > 0 && (
+            <div className="lb-list">
+              {rest.map((s, i) => (
+                <div className="lb-row" key={`${s.nome}-${s.created_at}`}>
+                  <div className="rank">{i + 4}</div>
+                  <div className="name">{s.nome}</div>
+                  <div className="score">{s.acertos} pts</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {onBack && (

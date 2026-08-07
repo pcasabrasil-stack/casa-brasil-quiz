@@ -18,16 +18,29 @@ const MOCK_SCORES = [
 async function fetchScores() {
   const { data, error } = await supabase
     .from("scores")
-    .select("nome, acertos, perguntas_respondidas, created_at")
+    .select("nome, telefone, acertos, perguntas_respondidas, created_at")
     .order("acertos", { ascending: false })
     .order("perguntas_respondidas", { ascending: true })
     .order("created_at", { ascending: true })
-    .limit(10);
+    .limit(500);
   if (error) {
     console.error(error);
     return [];
   }
-  return data;
+
+  // Se a mesma pessoa jogou mais de uma vez (identificada pelo telefone),
+  // mantém só a melhor tentativa dela no ranking. Como a busca já vem
+  // ordenada da melhor pra pior, a primeira ocorrência de cada telefone
+  // é sempre a pontuação mais alta dessa pessoa.
+  const seen = new Set();
+  const best = [];
+  for (const row of data) {
+    const key = row.telefone || row.nome;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    best.push(row);
+  }
+  return best.slice(0, 10);
 }
 
 export default function Leaderboard({ onBack }) {
@@ -38,7 +51,6 @@ export default function Leaderboard({ onBack }) {
       if (data.length > 0) setScores(data);
     });
 
-    // Atualiza em tempo real quando alguém salva uma pontuação nova.
     const channel = supabase
       .channel("scores-realtime")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "scores" }, () => {
@@ -46,8 +58,6 @@ export default function Leaderboard({ onBack }) {
       })
       .subscribe();
 
-    // Reforço: refaz a busca a cada 8s, caso o realtime não esteja habilitado
-    // na tabela (evita depender só do websocket durante o evento).
     const poll = setInterval(() => {
       fetchScores().then((data) => data.length > 0 && setScores(data));
     }, 8000);

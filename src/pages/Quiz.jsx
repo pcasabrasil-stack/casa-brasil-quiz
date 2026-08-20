@@ -91,15 +91,15 @@ export default function Quiz({ playerName, playerPhone, onExit }) {
         <div className="result-stats">
           <div className="stat-chip">
             <strong>{answered}</strong>
-            respondidas
+            <span>respondidas</span>
           </div>
           <div className="stat-chip correct">
             <strong>{score}</strong>
-            certas
+            <span>✓ certas</span>
           </div>
           <div className="stat-chip wrong">
             <strong>{wrong}</strong>
-            erradas
+            <span>✕ erradas</span>
           </div>
         </div>
 

@@ -2,16 +2,41 @@ import { useState } from "react";
 import logo from "../assets/logo-white.png";
 import ribbon from "../assets/ribbon.png";
 import { formatPhone } from "../lib/formatPhone.js";
+import { supabase } from "../lib/supabaseClient.js";
 
 export default function Home({ onStart, onViewRanking }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const canStart = name.trim() && phone.trim();
+  const canStart = name.trim() && phone.trim() && !checking;
 
-  function handleStart() {
+  async function handleStart() {
     if (!canStart) return;
-    onStart(name.trim(), phone.trim());
+    setErrorMsg("");
+    setChecking(true);
+
+    const trimmedPhone = phone.trim();
+    const { data, error } = await supabase
+      .from("scores")
+      .select("id")
+      .eq("telefone", trimmedPhone)
+      .limit(1);
+
+    setChecking(false);
+
+    if (error) {
+      setErrorMsg("Não deu pra verificar agora. Tenta de novo.");
+      return;
+    }
+
+    if (data && data.length > 0) {
+      setErrorMsg("Esse telefone já jogou. Só vale uma tentativa por pessoa.");
+      return;
+    }
+
+    onStart(name.trim(), trimmedPhone);
   }
 
   return (
@@ -39,13 +64,22 @@ export default function Home({ onStart, onViewRanking }) {
         inputMode="numeric"
         value={phone}
         maxLength={16}
-        onChange={(e) => setPhone(formatPhone(e.target.value))}
+        onChange={(e) => {
+          setPhone(formatPhone(e.target.value));
+          setErrorMsg("");
+        }}
         onKeyDown={(e) => e.key === "Enter" && handleStart()}
       />
 
       <button className="btn-primary" style={{ marginTop: 20 }} onClick={handleStart} disabled={!canStart}>
-        Começar
+        {checking ? "Verificando..." : "Começar"}
       </button>
+
+      {errorMsg && (
+        <div className="status-msg" style={{ color: "var(--danger)" }}>
+          {errorMsg}
+        </div>
+      )}
 
       <div className="home-rules">
         <div className="rule-chip">

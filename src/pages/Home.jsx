@@ -76,7 +76,7 @@ export default function Home({ onStart, onViewRanking }) {
       </button>
 
       {errorMsg && (
-        <div className="status-msg" style={{ color: "var(--danger)" }}>
+        <div className="status-msg" style={{ color: "var(--danger)", marginTop: 16, marginBottom: 8 }}>
           {errorMsg}
         </div>
       )}
